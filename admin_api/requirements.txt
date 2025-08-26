@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+sqlite-utils
+psycopg2-binary
+

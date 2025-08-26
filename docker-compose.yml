@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  # ──────────────────────────────
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB: agents_db
+      POSTGRES_USER: agentuser
+      POSTGRES_PASSWORD: secret123
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # ──────────────────────────────
+  streamlit-app:
+    build:
+      context: ./streamlitui         # path to your Streamlit app's Dockerfile
+    container_name: streamlit-app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - postgres-db
+    environment:
+      - OPENAI_API_KEY=**
+      - POSTGRES_DB_URL=postgresql://agentuser:secret123@postgres-db:5432/agents_db
+
+  # ──────────────────────────────
+  # admin-api:
+  #   build:
+  #     context: ./admin_api           # path to FastAPI admin service
+  #   container_name: admin-api
+  #   ports:
+  #     - "9000:9000"
+  #   depends_on:
+  #     - postgres-db
+  #   environment:
+  #     - POSTGRES_DB_URL=postgresql://agentuser:secret123@postgres-db:5432/agents_db
+
+  # ──────────────────────────────
+  backend-api:
+    build:
+      context: ./agent_backend           # path to FastAPI admin service
+    container_name: agent_backend-api
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres-db
+    environment:
+      - OPENAI_API_KEY=sk-**
+      - POSTGRES_DB_URL=postgresql://agentuser:secret123@postgres-db:5432/agents_db
+
+volumes:
+  postgres-data:
